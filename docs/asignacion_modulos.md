@@ -1,0 +1,9 @@
+# Asignación de Módulos
+
+| Integrante           | Módulo Asignado    | Responsabilidades Específicas                                     |
+|----------------------|--------------------|-------------------------------------------------------------------|
+| Jackeline Sanchez  | Módulo A: Agente y Búsqueda / CSP | - Formulación del problema como agente. <br> - Implementación de un algoritmo de búsqueda (por ejemplo, A* o BFS) para la detección de patrones. <br> - Justificación de las heurísticas utilizadas. <br> - Evaluación del algoritmo mediante un caso real del dominio. |
+| Daniel Galvan | Módulo B: Pipeline ML | - Preprocesamiento de datos: limpieza, normalización y codificación. <br> - Entrenamiento de al menos 2 modelos supervisados (por ejemplo, SVM, Random Forest). <br> - Evaluación de los modelos con métricas como precisión, recall, F1, y ROC-AUC. <br> - Justificación de los modelos elegidos y análisis de errores. |
+| Gabriel Valdez | Módulo C: Deep Learning | - Diseño y construcción de una red neuronal para clasificación de fraudes. <br> - Elección de capas, funciones de activación y optimizadores. <br> - Entrenamiento de la red neuronal y análisis de curvas de pérdida. <br> - Comparación con el modelo de ML del módulo B. |
+| Sergio Santos | Módulo D: NLP / LLM | - Implementación de procesamiento de texto para análisis de transacciones descritas en texto. <br> - Uso de técnicas de NLP o LLM para identificar patrones en los datos textuales. <br> - Evaluación crítica del modelo con casos de alucinación y fallas. |
+| Jackeline Sanchez  | Módulo E: Ética, Integración y Documentación | - Análisis de sesgos y fairness en los modelos. <br> - Propuestas de mitigación de sesgos y riesgos éticos. <br> - Integración de todos los módulos en un solo flujo. <br> - Documentación completa del proyecto, incluyendo README y justificación de decisiones éticas. |
