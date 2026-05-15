@@ -1,6 +1,7 @@
 *.pyc
 __pycache__/
-data/raw/
+data/financial_data.csv
 data/processed/
 data/models/
 data/reports/
+.env

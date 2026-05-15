@@ -39,7 +39,7 @@ Engineered en preprocess.py:
 | `src/dl/train_dl.py` | ⚠️ Vacío (debe completarse antes del pipeline) |
 | `src/integration/pipeline.py` | ❌ Vacío — **crear en esta semana** |
 | `src/nlp/nlp_component.py` | ❌ No existe — **crear en esta semana** |
-| `notebooks/nlp_demo.ipynb` | ❌ No existe — **crear en esta semana** |
+| `notebooks/nlp_demo.ipynb` | ✅ Implementado |
 | `docs/ethics_analysis.md` | ❌ Vacío — **crear en esta semana** |
 | `README.md` | ⚠️ Parcial — **actualizar en esta semana** |
 | `requirements.txt` | ⚠️ Incompleto — **agregar deps NLP** |
@@ -719,7 +719,7 @@ if __name__ == "__main__":
 
 ---
 
-## 7. Paso 4 — Crear `notebooks/nlp_demo.ipynb`
+## 7. Paso 4 — Notebook `notebooks/nlp_demo.ipynb`
 
 **Responsable:** Sergio Santos (Módulo D)  
 **Ruta absoluta:** `C:\Users\cgalv\source\Python\AI\Proyecto-AI\notebooks\nlp_demo.ipynb`
@@ -1460,7 +1460,7 @@ git push origin master --tags
 |---|---|---|
 | **Sergio Santos** (Módulo D) | `src/nlp/__init__.py` | Crear (vacío) |
 | **Sergio Santos** (Módulo D) | `src/nlp/nlp_component.py` | Crear (código completo en §6) |
-| **Sergio Santos** (Módulo D) | `notebooks/nlp_demo.ipynb` | Crear (celdas en §7) |
+| **Sergio Santos** (Módulo D) | `notebooks/nlp_demo.ipynb` | Implementado |
 | **Gabriel Valdez** (Módulo C) | `src/dl/model.py` | Completar si está vacío (§3.1) |
 | **Gabriel Valdez** (Módulo C) | `src/dl/train_dl.py` | Completar si está vacío (§3.2) |
 | **Jackeline Sanchez** (Módulo E) | `src/integration/pipeline.py` | Reemplazar vacío (código en §8) |

@@ -1,47 +1,37 @@
-+-----------------------------------------------+
-|                                               |
-|                  Sistema de Detección         |
-|                 de Fraude Financiero          |
-|                                               |
-+-----------------------------------------------+
-                    |
-                    v
-+-------------------+     +------------------------+
-|                   |     |                        |
-|   Módulo A:       |---->|  Módulo B: Pipeline ML  |
-|  Agente y Búsqueda|     |  Preprocesamiento &     |
-|  / CSP            |     |  Modelos Supervisados   |
-|                   |     |                        |
-+-------------------+     +------------------------+
-                    |                |
-                    v                v
-+-------------------+     +------------------------+
-|                   |     |                        |
-|   Módulo C:       |<----|  Módulo D: NLP / LLM    |
-|  Deep Learning    |     |  Procesamiento de texto |
-|                   |     |  (Análisis de Sentimientos) |
-+-------------------+     +------------------------+
-                    |
-                    v
-+-----------------------------------------------+
-|                                               |
-|   Módulo E: Ética, Integración y Documentación |
-|                                               |
-+-----------------------------------------------+
-                    |
-                    v
-+-----------------------------------------------+
-|                                               |
-|             Resultado Final (Transacciones    |
-|                Fraudulentas Detectadas)        |
-|                                               |
-+-----------------------------------------------+
+Sistema de IA para Detección de Fraude Financiero
 
+Flujo de comunicación real entre módulos
 
-Explicación:
-Módulo A: Agente y Búsqueda/CSP: Este módulo es responsable de la formulación del problema y de la implementación de un algoritmo de búsqueda (como A*) para explorar el espacio de transacciones.
-Módulo B: Pipeline ML: Este módulo realiza el preprocesamiento de los datos y el entrenamiento de los modelos supervisados para clasificar las transacciones como fraudulentas o no fraudulentas.
-Módulo C: Deep Learning: Este módulo implementa redes neuronales para aprender patrones complejos de las transacciones y mejorar la detección de fraudes.
-Módulo D: NLP / LLM: Este módulo se encarga del procesamiento de texto, como análisis de sentimientos y detección de anomalías en descripciones textuales relacionadas con las transacciones.
-Módulo E: Ética, Integración y Documentación: Este módulo realiza un análisis ético sobre el sistema, verifica posibles sesgos y se encarga de la integración de todos los módulos en un flujo cohesivo.
-Resultado Final: Después de procesar las transacciones a través de los módulos, el sistema genera una lista de transacciones fraudulentas detectadas.
+Módulo B (Pipeline ML) ----------------------+
+    - Carga data/financial_data.csv            |
+    - Preprocesa features                      |
+    - Entrena y guarda modelos ML              |
+                                                                                         v
+Módulo C (Deep Learning) ----------------> data/models + data/reports
+    - Usa features del preprocesamiento        - xgboost.pkl
+    - Entrena red neuronal                     - dl_final_model.keras
+    - Guarda métricas y ejemplos               - dl_metrics.json
+                                                                                         - dl_prediction_examples.csv
+                                                                                         - model_comparison.csv
+                                                                                         |
+                                                                                         v
+Módulo D (NLP / LLM crítico)
+    - Consume predicciones ML/DL reales
+    - Genera explicación textual de riesgo
+    - Genera resumen de lote para analista
+                                                                                         |
+                                                                                         v
+Módulo E (Integración + Ética + Documentación)
+    - Ejecuta pipeline completo (src/integration/pipeline.py)
+    - Consolida salida final (integration_summary.json)
+    - Documenta fairness, sesgos y mitigación
+
+Módulo A (Agente y Búsqueda/CSP)
+    - Complementa la solución con razonamiento clásico para decisiones/planning.
+    - Puede operar como capa de reglas/estrategia antes o después de clasificación,
+        según escenario del dominio.
+
+Resultado final
+    - Detección de fraude con modelos ML y DL sobre datos reales.
+    - Explicación legible y resumen de riesgo para soporte de decisión humana.
+    - Evidencia ética y de integración de extremo a extremo.

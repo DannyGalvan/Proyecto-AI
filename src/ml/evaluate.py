@@ -1,5 +1,7 @@
 import os
 import json
+import sys
+from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
@@ -20,9 +22,11 @@ from sklearn.metrics import (
     average_precision_score,
 )
 
-MODELS_DIR = os.path.join(os.path.dirname(__file__), "../../data/models")
-PROCESSED_DIR = os.path.join(os.path.dirname(__file__), "../../data/processed")
-REPORTS_DIR = os.path.join(os.path.dirname(__file__), "../../data/reports")
+ROOT_DIR = Path(__file__).resolve().parents[2]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from src.config.settings import MODELS_DIR, PROCESSED_DIR, REPORTS_DIR, PREDICTION_THRESHOLD
 
 
 def compute_metrics(y_true, y_pred, y_prob) -> dict:
@@ -90,11 +94,11 @@ def plot_feature_importance(model, feature_names: list, ax, top_n: int = 15):
     ax.set_xlabel("Importance")
 
 
-def evaluate_all(threshold: float = 0.5) -> dict:
-    os.makedirs(REPORTS_DIR, exist_ok=True)
+def evaluate_all(threshold: float = PREDICTION_THRESHOLD) -> dict:
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    X_test = pd.read_parquet(os.path.join(PROCESSED_DIR, "X_test.parquet"))
-    y_test = pd.read_parquet(os.path.join(PROCESSED_DIR, "y_test.parquet")).squeeze()
+    X_test = pd.read_parquet(PROCESSED_DIR / "X_test.parquet")
+    y_test = pd.read_parquet(PROCESSED_DIR / "y_test.parquet").squeeze()
 
     results = {}
     model_files = [f for f in os.listdir(MODELS_DIR) if f.endswith(".pkl")]
@@ -103,7 +107,12 @@ def evaluate_all(threshold: float = 0.5) -> dict:
 
     for mf in sorted(model_files):
         name = mf.replace(".pkl", "")
-        model = joblib.load(os.path.join(MODELS_DIR, mf))
+        model = joblib.load(MODELS_DIR / mf)
+
+        # Skip artifacts (like scalers) that are not probabilistic classifiers.
+        if not hasattr(model, "predict_proba"):
+            print(f"Skipping non-classifier artifact: {mf}")
+            continue
 
         y_prob = model.predict_proba(X_test)[:, 1]
         y_pred = (y_prob >= threshold).astype(int)
@@ -114,11 +123,17 @@ def evaluate_all(threshold: float = 0.5) -> dict:
         results[name] = {"model": model, "y_true": y_test, "y_pred": y_pred,
                          "y_prob": y_prob, "metrics": metrics}
 
+    if not results:
+        raise ValueError(
+            "No evaluable classifier models found in data/models. "
+            "Expected .pkl files with predict_proba()."
+        )
+
     # --- Comparison table ---
     print("\n=== FINAL MODEL COMPARISON ===")
     comparison = pd.DataFrame({n: d["metrics"] for n, d in results.items()}).T
     print(comparison.to_string())
-    comparison.to_csv(os.path.join(REPORTS_DIR, "model_comparison.csv"))
+    comparison.to_csv(REPORTS_DIR / "model_comparison.csv")
 
     # --- Plots ---
     n_models = len(results)
@@ -152,17 +167,17 @@ def evaluate_all(threshold: float = 0.5) -> dict:
         axes[1, j].set_visible(False)
 
     plt.tight_layout()
-    fig_path = os.path.join(REPORTS_DIR, "evaluation_plots.png")
+    fig_path = REPORTS_DIR / "evaluation_plots.png"
     plt.savefig(fig_path, dpi=150)
     print(f"\nPlots saved to {fig_path}")
 
     # Save metrics as JSON
     json_results = {n: d["metrics"] for n, d in results.items()}
-    with open(os.path.join(REPORTS_DIR, "metrics.json"), "w") as f:
+    with (REPORTS_DIR / "metrics.json").open("w", encoding="utf-8") as f:
         json.dump(json_results, f, indent=2)
 
     return results
 
 
 if __name__ == "__main__":
-    evaluate_all()
+    evaluate_all(threshold=PREDICTION_THRESHOLD)
