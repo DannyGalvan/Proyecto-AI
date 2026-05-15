@@ -1,5 +1,7 @@
 import os
 import time
+import sys
+from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
@@ -9,9 +11,16 @@ from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.metrics import make_scorer, f1_score, roc_auc_score
 from xgboost import XGBClassifier
 
-from preprocess import load_processed, preprocess
+ROOT_DIR = Path(__file__).resolve().parents[2]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
-MODELS_DIR = os.path.join(os.path.dirname(__file__), "../../data/models")
+from src.config.settings import MODELS_DIR, ML_SAMPLE_SIZE
+
+try:
+    from src.ml.preprocess import load_processed, preprocess
+except ModuleNotFoundError:
+    from preprocess import load_processed, preprocess
 
 # Two models for comparison:
 #   - Logistic Regression: linear baseline, fast, interpretable
@@ -86,7 +95,7 @@ def train_final(
 
 
 def run_training(sample_size: int | None = None, use_cached: bool = True) -> dict:
-    os.makedirs(MODELS_DIR, exist_ok=True)
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
     try:
         if not use_cached:
@@ -108,7 +117,7 @@ def run_training(sample_size: int | None = None, use_cached: bool = True) -> dic
     for name, model in MODELS.items():
         cv_results[name] = cross_validate_model(name, model, X_train, y_train)
         trained_models[name] = train_final(name, model, X_train, y_train)
-        joblib.dump(trained_models[name], os.path.join(MODELS_DIR, f"{name}.pkl"))
+        joblib.dump(trained_models[name], MODELS_DIR / f"{name}.pkl")
         print(f"  Saved to data/models/{name}.pkl")
 
     # Summary table
@@ -121,4 +130,4 @@ def run_training(sample_size: int | None = None, use_cached: bool = True) -> dic
 
 
 if __name__ == "__main__":
-    run_training(sample_size=200_000, use_cached=False)
+    run_training(sample_size=ML_SAMPLE_SIZE, use_cached=False)

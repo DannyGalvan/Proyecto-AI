@@ -12,3 +12,4 @@ ipykernel>=6.0
 kaggle>=1.6
 pyarrow>=14.0
 tensorflow>=2.15
+textblob>=0.18

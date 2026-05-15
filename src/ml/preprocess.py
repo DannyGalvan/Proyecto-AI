@@ -1,38 +1,30 @@
 import os
+import sys
+from pathlib import Path
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import joblib
 
-RAW_DIR = os.path.join(os.path.dirname(__file__), "../../data/raw")
-PROCESSED_DIR = os.path.join(os.path.dirname(__file__), "../../data/processed")
+ROOT_DIR = Path(__file__).resolve().parents[2]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from src.config.settings import DATASET_PATH, PROCESSED_DIR, ML_SAMPLE_SIZE
 
 TRANSACTION_TYPES = ["CASH_IN", "CASH_OUT", "DEBIT", "PAYMENT", "TRANSFER"]
 
 
-def find_csv(raw_dir: str) -> str:
-    if not os.path.isdir(raw_dir):
+def load_raw(sample_size: int | None = None, random_state: int = 42) -> pd.DataFrame:
+    if not DATASET_PATH.is_file():
         raise FileNotFoundError(
-            f"Raw data directory not found: {raw_dir}. "
-            "Create data/raw/ and place the Kaggle CSV there.\n"
-            "  kaggle datasets download -d sriharshaeedala/financial-fraud-detection-dataset"
+            f"Dataset not found at: {DATASET_PATH}. "
+            "Place the CSV at data/financial_data.csv"
         )
 
-    for f in os.listdir(raw_dir):
-        if f.endswith(".csv"):
-            return os.path.join(raw_dir, f)
-    raise FileNotFoundError(
-        f"No CSV found in {raw_dir}. "
-        "Download the dataset from Kaggle and place it in data/raw/.\n"
-        "  kaggle datasets download -d sriharshaeedala/financial-fraud-detection-dataset"
-    )
-
-
-def load_raw(sample_size: int | None = None, random_state: int = 42) -> pd.DataFrame:
-    path = find_csv(RAW_DIR)
-    print(f"Loading data from: {path}")
-    df = pd.read_csv(path)
+    print(f"Loading data from: {DATASET_PATH}")
+    df = pd.read_csv(DATASET_PATH)
     print(f"Full dataset shape: {df.shape}")
     if sample_size is not None:
         # Stratified sample to preserve fraud ratio
@@ -124,25 +116,25 @@ def preprocess(
     print(f"Features: {X_train.shape[1]}")
 
     if save:
-        os.makedirs(PROCESSED_DIR, exist_ok=True)
-        X_train.to_parquet(os.path.join(PROCESSED_DIR, "X_train.parquet"), index=False)
-        X_test.to_parquet(os.path.join(PROCESSED_DIR, "X_test.parquet"), index=False)
-        y_train.to_frame().to_parquet(os.path.join(PROCESSED_DIR, "y_train.parquet"), index=False)
-        y_test.to_frame().to_parquet(os.path.join(PROCESSED_DIR, "y_test.parquet"), index=False)
-        joblib.dump(scaler, os.path.join(PROCESSED_DIR, "scaler.pkl"))
+        PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+        X_train.to_parquet(PROCESSED_DIR / "X_train.parquet", index=False)
+        X_test.to_parquet(PROCESSED_DIR / "X_test.parquet", index=False)
+        y_train.to_frame().to_parquet(PROCESSED_DIR / "y_train.parquet", index=False)
+        y_test.to_frame().to_parquet(PROCESSED_DIR / "y_test.parquet", index=False)
+        joblib.dump(scaler, PROCESSED_DIR / "scaler.pkl")
         print(f"\nProcessed data saved to {PROCESSED_DIR}")
 
     return X_train, X_test, y_train, y_test, scaler
 
 
 def load_processed() -> tuple:
-    X_train = pd.read_parquet(os.path.join(PROCESSED_DIR, "X_train.parquet"))
-    X_test = pd.read_parquet(os.path.join(PROCESSED_DIR, "X_test.parquet"))
-    y_train = pd.read_parquet(os.path.join(PROCESSED_DIR, "y_train.parquet")).squeeze()
-    y_test = pd.read_parquet(os.path.join(PROCESSED_DIR, "y_test.parquet")).squeeze()
-    scaler = joblib.load(os.path.join(PROCESSED_DIR, "scaler.pkl"))
+    X_train = pd.read_parquet(PROCESSED_DIR / "X_train.parquet")
+    X_test = pd.read_parquet(PROCESSED_DIR / "X_test.parquet")
+    y_train = pd.read_parquet(PROCESSED_DIR / "y_train.parquet").squeeze()
+    y_test = pd.read_parquet(PROCESSED_DIR / "y_test.parquet").squeeze()
+    scaler = joblib.load(PROCESSED_DIR / "scaler.pkl")
     return X_train, X_test, y_train, y_test, scaler
 
 
 if __name__ == "__main__":
-    preprocess(sample_size=200_000)
+    preprocess(sample_size=ML_SAMPLE_SIZE)

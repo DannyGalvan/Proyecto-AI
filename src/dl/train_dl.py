@@ -34,10 +34,8 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from src.dl.model import DLHyperParams, build_model
+from src.config.settings import MODELS_DIR, REPORTS_DIR, ML_SAMPLE_SIZE, PREDICTION_THRESHOLD
 from src.ml.preprocess import load_processed, preprocess
-
-MODELS_DIR = ROOT_DIR / "data" / "models"
-REPORTS_DIR = ROOT_DIR / "data" / "reports"
 
 
 def ensure_processed_data(sample_size: int | None, use_cached: bool):
@@ -159,9 +157,9 @@ def append_dl_to_comparison(metrics: dict, reports_dir: Path) -> None:
 def train_deep_learning(
     epochs: int = 50,
     batch_size: int = 256,
-    sample_size: int | None = 200_000,
+    sample_size: int | None = ML_SAMPLE_SIZE,
     validation_split: float = 0.2,
-    threshold: float = 0.5,
+    threshold: float = PREDICTION_THRESHOLD,
     use_cached: bool = True,
 ) -> dict:
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
@@ -261,13 +259,13 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Entrena el modelo DL de fraude.")
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--batch-size", type=int, default=256)
-    parser.add_argument("--sample-size", type=int, default=200_000)
-    parser.add_argument("--threshold", type=float, default=0.5)
+    parser.add_argument("--sample-size", type=int, default=ML_SAMPLE_SIZE)
+    parser.add_argument("--threshold", type=float, default=PREDICTION_THRESHOLD)
     parser.add_argument("--validation-split", type=float, default=0.2)
     parser.add_argument(
         "--no-cache",
         action="store_true",
-        help="Reprocesa datos desde data/raw en vez de usar data/processed.",
+        help="Reprocesa datos desde data/financial_data.csv en vez de usar data/processed.",
     )
     return parser.parse_args()
 
@@ -287,8 +285,7 @@ if __name__ == "__main__":
         print("\nNo se pudo iniciar el entrenamiento DL.")
         print(exc)
         print("\nPasos esperados:")
-        print("1. Crea data/raw/ en la raiz del proyecto.")
-        print("2. Coloca ahi el CSV descargado desde Kaggle.")
+        print("1. Coloca el CSV del proyecto en data/financial_data.csv.")
         print("3. Ejecuta: python src/ml/preprocess.py")
         print("4. Ejecuta: python src/dl/train_dl.py")
         sys.exit(1)
