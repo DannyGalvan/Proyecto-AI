@@ -25,6 +25,9 @@
 pip install -r requirements.txt
 ```
 
+# Instalar dependencias NLP (si no están incluidas):
+python -m textblob.download_corpora
+
 ### Descargar el dataset
 
 **Opción 1 — Kaggle CLI (recomendado):**
@@ -56,6 +59,9 @@ Proyecto-AI/
 │   ├── dl/               # Módulo C: Deep Learning
 │   │   ├── model.py
 │   │   └── train_dl.py
+│   ├── nlp/              # Módulo D: NLP / LLM
+│   │   ├── nlp_component.py
+│   │   └── nlp_demo.ipynb
 │   └── integration/
 │       └── pipeline.py
 ├── notebooks/
@@ -92,6 +98,22 @@ python evaluate.py
 # 4. Ver análisis completo en el notebook
 cd ../../
 jupyter notebook notebooks/ml_analysis.ipynb
+```
+
+## Ejecutar el Pipeline Completo (Semana 5)
+
+```bash
+# 1. Ejecutar el pipeline de integración (ML/DL + NLP):
+cd src/integration
+python pipeline.py
+
+# 2. Demostración del componente NLP:
+cd ../nlp
+jupyter notebook nlp_demo.ipynb
+
+# 3. Análisis ético:
+cd ../../docs
+# Editar y revisar ethics_analysis.md
 ```
 
 Los resultados se guardan automáticamente en `data/reports/`:
