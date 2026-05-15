@@ -12,6 +12,13 @@ TRANSACTION_TYPES = ["CASH_IN", "CASH_OUT", "DEBIT", "PAYMENT", "TRANSFER"]
 
 
 def find_csv(raw_dir: str) -> str:
+    if not os.path.isdir(raw_dir):
+        raise FileNotFoundError(
+            f"Raw data directory not found: {raw_dir}. "
+            "Create data/raw/ and place the Kaggle CSV there.\n"
+            "  kaggle datasets download -d sriharshaeedala/financial-fraud-detection-dataset"
+        )
+
     for f in os.listdir(raw_dir):
         if f.endswith(".csv"):
             return os.path.join(raw_dir, f)
