@@ -102,6 +102,24 @@ def preprocess(
         X, y, test_size=test_size, random_state=random_state, stratify=y
     )
 
+    # ---- Outlier handling (winsorization at P99.5) ----
+    # `amount` and balance columns are extremely right-skewed (up to ~92M).
+    # We clip extreme values at the 99.5th percentile computed ONLY on train
+    # to prevent outliers from distorting StandardScaler statistics and LR.
+    # Rationale: removing outliers would drop real fraud (frauds tend to be large);
+    # winsorization preserves the "this is a large transaction" signal without
+    # letting a single extreme value move the feature distribution.
+    outlier_cols = [
+        "amount", "oldbalanceOrg", "newbalanceOrig",
+        "oldbalanceDest", "newbalanceDest",
+    ]
+    clip_upper = X_train[outlier_cols].quantile(0.995)
+    print("\n--- Outlier clipping (P99.5 thresholds, computed on train) ---")
+    for col, upper in clip_upper.items():
+        print(f"  {col:<18}: clipped to <= {upper:,.0f}")
+    X_train[outlier_cols] = X_train[outlier_cols].clip(upper=clip_upper, axis=1)
+    X_test[outlier_cols]  = X_test[outlier_cols].clip(upper=clip_upper, axis=1)
+
     # Scale numeric features; fit only on training data to prevent leakage
     numeric_cols = [
         "step", "amount", "oldbalanceOrg", "newbalanceOrig",
