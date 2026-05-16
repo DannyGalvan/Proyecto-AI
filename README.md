@@ -9,9 +9,9 @@
 | Integrante | Módulo |
 |---|---|
 | Jackeline Sanchez | A — Agente y Búsqueda / CSP + E — Ética e Integración |
-| Daniel Galvan | B — Pipeline ML |
+| Sergio Santos | B — Pipeline ML |
 | Gabriel Valdez | C — Deep Learning |
-| Sergio Santos | D — NLP / LLM |
+| Daniel Galvan | D — NLP / LLM |
 
 ## Dataset
 
