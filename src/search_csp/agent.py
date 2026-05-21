@@ -1,36 +1,51 @@
-class Agent:
-    def __init__(self, transactions):
-        self.transactions = transactions  # Lista de transacciones
-        self.visited = set()  # Nodos visitados
-        self.path = []  # Ruta desde el inicio hasta el objetivo
+from src.search_csp.algorithm import a_star_search
 
-    def is_goal(self, transaction):
-        # Verifica si la transacción es fraudulenta (es el estado meta)
-        return transaction['isFraud'] == 1
 
-    def get_neighbors(self, current_transaction):
-        # Obtiene las transacciones cercanas (simula la expansión de nodos en el espacio de estados)
-        neighbors = []
-        for transaction in self.transactions:
-            if transaction != current_transaction:
-                neighbors.append(transaction)
-        return neighbors
+class FraudDetectionAgent:
+    """
+    Models fraud detection as a graph search problem.
 
-    def search(self):
-        # Algoritmo A* para buscar transacciones fraudulentas
-        open_list = [(self.transactions[0], 0)]  # (transacción, costo acumulado)
-        while open_list:
-            current_transaction, current_cost = open_list.pop(0)
+    State space: each transaction is a node identified by its list index.
+    Initial state: the full set of unreviewed transactions in the open list.
+    Goal state: any transaction where isFraud == 1.
+    Actions: expand to related transactions from the same origin account
+             within a ±5-step time window.
+    Evaluation function: f(n) = g(n) + (1 - h(n)), where h is the
+             domain heuristic from algorithm.py (fraud risk score in [0,1]).
+    """
 
-            # Verificar si hemos alcanzado el objetivo
-            if self.is_goal(current_transaction):
-                return self.path
+    def __init__(self, transactions: list[dict]):
+        self.transactions = transactions
+        self._account_index: dict[str, list[int]] = {}
+        self._build_account_index()
 
-            # Expansión de vecinos
-            for neighbor in self.get_neighbors(current_transaction):
-                if neighbor not in self.visited:
-                    self.visited.add(neighbor)
-                    open_list.append((neighbor, current_cost + 1))  # Aumenta el costo de la transacción
-                    self.path.append(neighbor)
+    def _build_account_index(self) -> None:
+        """Pre-index transactions by origin account for O(1) neighbor lookup."""
+        for i, tx in enumerate(self.transactions):
+            key = tx.get("nameOrig", "")
+            self._account_index.setdefault(key, []).append(i)
 
-        return None  # Si no se encuentra ninguna transacción fraudulenta
+    def is_goal(self, transaction: dict) -> bool:
+        return transaction.get("isFraud") == 1
+
+    def get_neighbors(self, idx: int) -> list[int]:
+        """
+        Neighbors = transactions from the same origin account within ±5 steps.
+        This restricts branching to account-level activity patterns,
+        reflecting the domain reality that fraud chains within one account.
+        """
+        tx = self.transactions[idx]
+        origin = tx.get("nameOrig", "")
+        step = tx.get("step", 0)
+        return [
+            i
+            for i in self._account_index.get(origin, [])
+            if i != idx and abs(self.transactions[i].get("step", 0) - step) <= 5
+        ]
+
+    def search(self) -> dict | None:
+        """
+        Run A* to find the highest-priority fraudulent transaction.
+        Returns the transaction dict or None if no fraud found.
+        """
+        return a_star_search(self.transactions, self.get_neighbors)

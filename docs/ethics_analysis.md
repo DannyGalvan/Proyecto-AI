@@ -1,5 +1,44 @@
 # Análisis Ético del Sistema de IA
 
+**Módulo:** E — Ética, Integración y Documentación  
+**Responsable:** Jackeline Sanchez  
+**Dominio:** Detección de Fraude Financiero  
+**Dataset:** PaySim — 6,362,620 transacciones bancarias
+
+---
+
+## Diagrama del Pipeline Integrado
+
+```mermaid
+flowchart TD
+    DATA[(X_test\ndatos preprocesados)] --> ML
+
+    subgraph ML ["Rama ML — xgboost.pkl"]
+        ML1[predict_proba] --> ML2[y_prob_ml\ny_pred_ml]
+    end
+
+    subgraph DL ["Rama DL — dl_final_model.keras"]
+        DL1[predict] --> DL2[y_prob_dl\ny_pred_dl]
+    end
+
+    subgraph NLP ["Rama NLP — nlp_component.py"]
+        NLP1[explain_prediction] --> NLP2[explicación texto]
+        NLP3[summarize_batch] --> NLP4[resumen lote]
+    end
+
+    DATA --> DL
+    DATA --> NLP
+
+    ML2 --> ENS[Ensemble ponderado\nML 60% + DL 40%\nsi ambos disponibles]
+    DL2 --> ENS
+    ENS --> FINAL[final_probs\nfinal_preds]
+    NLP2 --> OUT
+    NLP4 --> OUT
+    FINAL --> OUT[(integration_summary.json\nml · dl · explanation · summary)]
+```
+
+---
+
 ## Contexto
 Sistema evaluado: detección de fraude financiero sobre `data/financial_data.csv`.
 Pipeline integrado: datos reales -> ML (XGBoost) + DL (MLP) -> NLP (explicación y resumen de riesgo).

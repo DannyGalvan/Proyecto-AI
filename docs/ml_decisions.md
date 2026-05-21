@@ -7,6 +7,32 @@
 
 ---
 
+## Diagrama del Pipeline ML
+
+```mermaid
+flowchart TD
+    CSV[(financial_data.csv\n6.36M filas)] --> LOAD[load_raw\nmuestra estratificada 200K]
+    LOAD --> DROP[Eliminar columnas\nnameOrig · nameDest · isFlaggedFraud]
+    DROP --> ENG[Feature Engineering\nerrorBalanceOrig · errorBalanceDest\norigBalanceZero · amountToOrigRatio\nisHighRiskType]
+    ENG --> ENC[One-hot encoding\ntipo de transacción]
+    ENC --> SPLIT[train_test_split\n80/20 estratificado]
+
+    SPLIT --> CLIP[Winsorización P99.5\ncalculada solo en train]
+    CLIP --> SCALE[StandardScaler\nfit solo en train]
+    SCALE --> XTRAIN[(X_train.parquet\ny_train.parquet)]
+    SCALE --> XTEST[(X_test.parquet\ny_test.parquet)]
+
+    XTRAIN --> LR[Logistic Regression\nclass_weight=balanced]
+    XTRAIN --> XGB[XGBoost\nscale_pos_weight dinámico]
+    LR --> CV[StratifiedKFold CV\n5 folds]
+    XGB --> CV
+    CV --> EVAL[evaluate.py\naccuracy · precision · recall\nF1 · ROC-AUC · AP]
+    EVAL --> REP[(model_comparison.csv\nroc_curves.png\nfeature_importance.png)]
+    XGB --> MODEL[(xgboost.pkl\nlogistic_regression.pkl)]
+```
+
+---
+
 ## 1. Preprocesamiento
 
 ### 1.1 Columnas eliminadas
