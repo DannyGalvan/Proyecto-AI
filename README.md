@@ -158,3 +158,17 @@ Los resultados se guardan automáticamente en `data/reports/`:
 - `dl_training_curves.png` — curvas de entrenamiento DL
 - `dl_prediction_examples.csv` — ejemplos reales de aciertos/errores DL
 - `integration_summary.json` — resultado final del flujo integrado
+
+## Preguntas de Negocio
+
+**¿Qué tan confiable es el sistema para detectar fraude?**
+El modelo ML (XGBoost) alcanza 99.51% de recall sobre fraude y 0.02% de tasa de falsos positivos en el set de prueba. El modelo DL (MLP) alcanza 99.45% de recall con AUC de 0.9995. Ambos modelos son altamente confiables para los patrones de fraude presentes en el dataset (TRANSFER y CASH_OUT con drenaje de saldo).
+
+**¿Cuándo se debe revisar una transacción manualmente?**
+El pipeline asigna un score de riesgo continuo [0,1]. Se recomienda bloqueo automático solo para score > 0.90; revisión manual para score en rango [0.50, 0.90]; aprobación directa para score < 0.50. El umbral exacto debe calibrarse según el costo operativo de falsos positivos vs. falsos negativos del negocio.
+
+**¿Qué tipos de fraude detecta mejor el sistema?**
+El sistema detecta fraude en transacciones TRANSFER y CASH_OUT, especialmente cuando hay drenaje completo de saldo (recall = 100% en TRANSFER, 99.03% en CASH_OUT según análisis de fairness). No está entrenado para detectar fraude en PAYMENT, DEBIT o CASH_IN, ya que el dataset no contiene fraude en esos tipos.
+
+**¿Qué riesgo existe al usar el sistema en producción?**
+El riesgo principal no es la baja precisión sino el uso excesivamente automático: bloquear transacciones sin revisión humana puede afectar a clientes legítimos (FP). Adicionalmente, el modelo puede degradarse con el tiempo si los patrones de fraude evolucionan (data drift). Se requiere monitoreo continuo de recall y tasa de FP por tipo de transacción.
