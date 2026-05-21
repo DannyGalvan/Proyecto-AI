@@ -14,8 +14,9 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 if str(ROOT_DIR) not in sys.path:
 	sys.path.insert(0, str(ROOT_DIR))
 
-from src.ml.preprocess import load_processed, preprocess
+from src.ml.preprocess import load_processed, load_raw, preprocess
 from src.nlp.nlp_component import NLPComponent
+from src.search_csp.agent import FraudDetectionAgent
 from src.config.settings import (
 	DATASET_PATH,
 	MODELS_DIR,
@@ -116,6 +117,39 @@ def run_dl_branch(X_test: pd.DataFrame, nlp: NLPComponent, models_dir: Path, rep
 	}
 
 
+def run_astar_branch(sample_size: int = 5000) -> dict:
+	"""Ejecuta A* (Módulo A) sobre una muestra de transacciones raw para
+	identificar la transacción fraudulenta de mayor prioridad heurística."""
+	try:
+		df_raw = load_raw(sample_size=sample_size)
+	except FileNotFoundError as exc:
+		return {
+			"executed": False,
+			"reason": str(exc),
+		}
+
+	transactions = df_raw.to_dict("records")
+	agent = FraudDetectionAgent(transactions)
+	result = agent.search()
+
+	if result is None:
+		return {
+			"executed": True,
+			"sample_size": int(len(transactions)),
+			"fraud_found": False,
+			"top_fraud_transaction": None,
+		}
+
+	# Sanitiza tipos numpy a tipos nativos JSON-serializables
+	clean = {k: (v.item() if hasattr(v, "item") else v) for k, v in result.items()}
+	return {
+		"executed": True,
+		"sample_size": int(len(transactions)),
+		"fraud_found": True,
+		"top_fraud_transaction": clean,
+	}
+
+
 def main() -> None:
 	models_dir = MODELS_DIR
 	reports_dir = REPORTS_DIR
@@ -128,13 +162,27 @@ def main() -> None:
 	ml_result = run_ml_branch(X_test, nlp, models_dir)
 	dl_result = run_dl_branch(X_test, nlp, models_dir, reports_dir)
 
+	print("\n[Módulo A] Ejecutando A* sobre muestra de transacciones raw...")
+	astar_result = run_astar_branch(sample_size=5000)
+	if astar_result.get("fraud_found"):
+		tx = astar_result["top_fraud_transaction"]
+		print(
+			f"  A* halló fraude prioritario: type={tx.get('type')} amount={tx.get('amount')} "
+			f"nameOrig={tx.get('nameOrig')}"
+		)
+	elif astar_result.get("executed"):
+		print("  A*: no se encontraron fraudes en la muestra.")
+	else:
+		print(f"  A* no se pudo ejecutar: {astar_result.get('reason')}")
+
 	final_result = {
 		"dataset": str(DATASET_PATH),
 		"test_size": int(len(X_test)),
 		"ml": ml_result,
 		"dl": dl_result,
+		"module_a_astar": astar_result,
 		"conclusion": (
-			"Pipeline integrado ejecutado: datos reales -> ML/DL -> NLP -> resultado final."
+			"Pipeline integrado ejecutado: datos reales -> ML/DL -> NLP + A* -> resultado final."
 		),
 	}
 
