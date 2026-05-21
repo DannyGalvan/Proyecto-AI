@@ -117,7 +117,7 @@ def run_dl_branch(X_test: pd.DataFrame, nlp: NLPComponent, models_dir: Path, rep
 	}
 
 
-def run_astar_branch(sample_size: int = 5000) -> dict:
+def run_astar_branch(sample_size: int = 20000) -> dict:
 	"""Ejecuta A* (Módulo A) sobre una muestra de transacciones raw para
 	identificar la transacción fraudulenta de mayor prioridad heurística."""
 	try:
@@ -163,7 +163,7 @@ def main() -> None:
 	dl_result = run_dl_branch(X_test, nlp, models_dir, reports_dir)
 
 	print("\n[Módulo A] Ejecutando A* sobre muestra de transacciones raw...")
-	astar_result = run_astar_branch(sample_size=5000)
+	astar_result = run_astar_branch(sample_size=20000)
 	if astar_result.get("fraud_found"):
 		tx = astar_result["top_fraud_transaction"]
 		print(
