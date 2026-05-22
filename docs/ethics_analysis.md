@@ -11,30 +11,48 @@
 
 ```mermaid
 flowchart TD
-    DATA[(X_test\ndatos preprocesados)] --> ML
+    CSV[(Synthetic_Financial\ndatasets_log.csv)]
+    PROC[(X_test.parquet\ndatos preprocesados)]
 
-    subgraph ML ["Rama ML — xgboost.pkl"]
-        ML1[predict_proba] --> ML2[y_prob_ml\ny_pred_ml]
+    subgraph A ["Módulo A — run_astar_branch"]
+        A1[load_raw\n20K filas raw]
+        A2[FraudDetectionAgent\nA* sobre grafo de cuentas]
+        A1 --> A2
     end
 
-    subgraph DL ["Rama DL — dl_final_model.keras"]
-        DL1[predict] --> DL2[y_prob_dl\ny_pred_dl]
+    subgraph ML ["Módulo B — run_ml_branch"]
+        ML1[xgboost.pkl\npredict_proba]
+        ML2[y_prob_ml · y_pred_ml]
+        ML1 --> ML2
     end
 
-    subgraph NLP ["Rama NLP — nlp_component.py"]
-        NLP1[explain_prediction] --> NLP2[explicación texto]
-        NLP3[summarize_batch] --> NLP4[resumen lote]
+    subgraph DL ["Módulo C — run_dl_branch"]
+        DL1[dl_final_model.keras\npredict]
+        DL2[y_prob_dl · y_pred_dl]
+        DL1 --> DL2
     end
 
-    DATA --> DL
-    DATA --> NLP
+    subgraph NLP ["Módulo D — NLPComponent"]
+        NLP1[explain_prediction\nfeature importance]
+        NLP2[summarize_batch\nresumen lote]
+    end
 
-    ML2 --> ENS[Ensemble ponderado\nML 60% + DL 40%\nsi ambos disponibles]
-    DL2 --> ENS
-    ENS --> FINAL[final_probs\nfinal_preds]
+    CSV --> A1
+    PROC --> ML1
+    PROC --> DL1
+    PROC --> NLP1
+
+    ML2 --> NLP1
+    ML2 --> NLP2
+    DL2 --> NLP2
+
+    A2 --> OUT
+    NLP1 --> OUT
     NLP2 --> OUT
-    NLP4 --> OUT
-    FINAL --> OUT[(integration_summary.json\nml · dl · explanation · summary)]
+    ML2 --> OUT
+    DL2 --> OUT
+
+    OUT[(integration_summary.json\nml · dl · module_a_astar\nexplanation · summary)]
 ```
 
 ---

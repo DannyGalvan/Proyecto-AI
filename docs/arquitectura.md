@@ -49,6 +49,7 @@ flowchart TD
     B3 --> E1
     D1 --> E1
     B2 -->|xgboost.pkl| E1
+    A2 -->|top_fraud_transaction\nmodule_a_astar| E1
 ```
 
 ---
